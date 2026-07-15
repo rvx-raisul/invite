@@ -1,12 +1,12 @@
 import os
 import smtplib
+import uuid
 from email.message import EmailMessage
 from email.utils import formataddr
 from flask import Flask, request, jsonify, render_template, render_template_string
 from dotenv import load_dotenv
 
 load_dotenv()
-
 app = Flask(__name__)
 
 SMTP_SERVER = "smtp.gmail.com"
@@ -64,7 +64,7 @@ def handle_send():
     
     if not to_email or not template_type or not lang or not invite_link:
         return jsonify({"error": "Missing required fields"}), 400
-        
+
     template_name = f"{template_type}_{lang}.html"
     
     try:
@@ -89,10 +89,11 @@ def handle_send():
             invite_link=invite_link
         )
         
-        from_display_name = sender_name
-             
-        send_email(to_email, subject, html_content, from_name=from_display_name, from_email=EMAIL)
+        random_id = str(uuid.uuid4())
+        html_content += f'<div style="display:none; color:transparent; font-size:1px;">{random_id}</div>'
         
+        from_display_name = sender_name
+        send_email(to_email, subject, html_content, from_name=from_display_name, from_email=EMAIL)
         return jsonify({"success": True, "message": "Email sent successfully!"})
         
     except Exception as e:
